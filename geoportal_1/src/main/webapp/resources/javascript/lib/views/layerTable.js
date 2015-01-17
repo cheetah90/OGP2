@@ -553,7 +553,7 @@ OpenGeoportal.Views.LayerTable = Backbone.View
 										minWidth : 62,
 										width : 86,
 										organize : "group",
-										visible : true,
+										visible : false,
 										hidable : true,
 										displayName : "Originator",
 										header : "Originator",
@@ -566,7 +566,7 @@ OpenGeoportal.Views.LayerTable = Backbone.View
 										minWidth : 58,
 										width : 80,
 										organize : "group",
-										visible : false,
+										visible : true,
 										hidable : true,
 										displayName : "Publisher",
 										header : "Publisher",
@@ -657,7 +657,7 @@ OpenGeoportal.Views.LayerTable = Backbone.View
 										
 										var canPreview = function(location){
 											//where is a good place to centralize this?
-											return OpenGeoportal.Utility.hasLocationValueIgnoreCase(location, ["wms", "arcgisrest", "imagecollection", "externalLink"]);
+											return OpenGeoportal.Utility.hasLocationValueIgnoreCase(location, ["wms", "arcgisrest", "imagecollection"]);
 										};
 										
 										var hasAccess = true;
