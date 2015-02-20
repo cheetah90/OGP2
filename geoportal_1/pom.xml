@@ -24,7 +24,7 @@
 			</snapshots>
 			<id>opengeo</id>
 			<name>OpenGeo Maven Repository</name>
-			<url>http://repo.opengeo.org</url>
+			<url>http://repo.boundlessgeo.com/main</url>
 		</repository>
 	</repositories>
 	<!--mvn test runs the Selenium 2 based junit tests. you probably won't like 
