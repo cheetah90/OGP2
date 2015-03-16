@@ -40,6 +40,7 @@ public class MetadataFromSolr implements MetadataRetriever {
 	MetadataFromSolr() {
 		// Create a factory
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);	//ISO metadata uses namespace, so need to be set to true
 		factory.setValidating(false);  // dtd isn't always available; would be nice to attempt to validate
 		try {
 			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
@@ -257,9 +258,12 @@ public class MetadataFromSolr implements MetadataRetriever {
 
         try {
 
-            NodeList rootNodes = document.getElementsByTagNameNS("*", "MD_Metadata");
-            NodeList altRootNodes = document.getElementsByTagNameNS("*", "MI_Metadata");
-            int totalNodes = rootNodes.getLength() + altRootNodes.getLength();
+            NodeList rootNodes_withNS = document.getElementsByTagNameNS("*", "MD_Metadata");
+			NodeList rootNodes_noNS = document.getElementsByTagName("MD_Metadata");
+
+			NodeList altRootNodes_withNS = document.getElementsByTagNameNS("*", "MI_Metadata");
+			NodeList altRootNodes_noNS = document.getElementsByTagName("MD_Metadata");
+            int totalNodes = rootNodes_withNS.getLength() + rootNodes_noNS.getLength() + altRootNodes_withNS.getLength() + altRootNodes_noNS.getLength();
             if (totalNodes > 0){
                     metadataType = MetadataType.ISO_19139;
                 
