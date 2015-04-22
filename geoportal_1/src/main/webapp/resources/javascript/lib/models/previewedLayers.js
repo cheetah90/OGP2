@@ -132,8 +132,8 @@ OpenGeoportal.Models.PreviewLayer = OpenGeoportal.Models.ProtocolAware.extend({
 			// "http://www.lib.berkeley.edu/EART/mapviewer/collections/histoposf"}}
 			previewType = "imagecollection";
 		} else if (OpenGeoportal.Utility.hasLocationValueIgnoreCase(
-				locationObj, [ "arcgisrest" ])) {
-			previewType = "arcgisrest";
+				locationObj, [ "esrifeatureservice" ])) {
+			previewType = "esrifeatureservice";
 		} else if (OpenGeoportal.Utility.hasLocationValueIgnoreCase(
 				locationObj, [ "externalLink" ])) {
 			previewType = "externalLink";

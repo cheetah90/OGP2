@@ -2229,7 +2229,117 @@ OpenGeoportal.MapController = function() {
 		var newWindowURL = layerModel.get("Location").externalLink;
 		window.open(newWindowURL, "_blank","toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
 	};
-	
+
+	/**
+	 * Test the visualization of Esri's Feature Service // Allen Lin from U of M
+	 * @param layerModel
+	 */
+	this.addArcGISFeatureServiceLayer = function(layerModel){
+		var handleEsriJSON = function(data){
+			var featuresArray = data.features;
+
+			//Get the CRS for GeoJSON
+			var crsNumber;
+			if(data.spatialReference.wkid<32767){
+				crsNumber = data.spatialReference.wkid
+			} else
+				console.error("The CRS number in Esri JSON is not matched with EPSG number!");
+
+			var geojson = {};
+			geojson["type"] = "FeatureCollection";
+			geojson["crs"] = {};
+			geojson["crs"]["type"] = "name";
+			geojson["crs"]["properties"]={};
+			geojson["crs"]["properties"]["name"] = "EPSG:" + crsNumber;
+
+			var geojsonArray = [];
+			for(i = 0; i < featuresArray.length;i++){
+
+				var arcgisGeometry = {};
+				var geojsonObject = {};
+
+				arcgisGeometry.x = parseFloat(featuresArray[i].geometry.x);
+				arcgisGeometry.y = parseFloat(featuresArray[i].geometry.y);
+
+				if(arcgisGeometry.x<-180||arcgisGeometry.x>180||arcgisGeometry.y<-90||arcgisGeometry.y>90){
+					continue;
+				}
+
+				geojsonObject.geometry = Terraformer.ArcGIS.parse(arcgisGeometry);
+				geojsonObject.type = 'Feature';
+
+				geojsonArray.push(geojsonObject);
+			}
+
+			geojson.features = geojsonArray;
+
+			var geojson_format = new OpenLayers.Format.GeoJSON();
+			var newLayer = new OpenLayers.Layer.Vector();
+			newLayer.addFeatures(geojson_format.read(geojson));
+
+			newLayer.projection = new OpenLayers.Projection("EPSG:3857");
+			// how should this change? trigger custom events with jQuery
+			newLayer.events.register('loadstart', newLayer, function() {
+				jQuery(document).trigger({type: "showLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+			});
+			newLayer.events.register('loadend', newLayer, function() {
+				jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+			});
+			var that2 = that;
+			// we do a cursory check to see if the layer exists before we add it
+			jQuery("body").bind(newLayer.ogpLayerId + 'Exists', function() {
+				that2.addLayer(newLayer);
+			});
+			that.layerExists(layerModel);
+		};
+
+		var handleGeoJSON = function(data){
+			var geojson_format = new OpenLayers.Format.GeoJSON();
+			var newLayer = new OpenLayers.Layer.Vector();
+			newLayer.addFeatures(geojson_format.read(data));
+			newLayer.ogpLayerId = layerModel.get("LayerId");
+
+			newLayer.projection = new OpenLayers.Projection("EPSG:3857");
+			// how should this change? trigger custom events with jQuery
+			newLayer.events.register('loadstart', newLayer, function() {
+				jQuery(document).trigger({type: "showLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+			});
+			newLayer.events.register('loadend', newLayer, function() {
+				jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+			});
+
+			var that2 = that
+			// we do a cursory check to see if the layer exists before we add it
+			jQuery("body").bind(newLayer.ogpLayerId + 'Exists', function() {
+				that2.addLayer(newLayer);
+			});
+			that.layerExists(layerModel);
+		};
+
+		var featureServiceEndpoint = layerModel.get("Location").esrifeatureservice;
+		var that = this;
+
+		$.ajax({
+			type: "GET",
+			dataType:"jsonp",
+			url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=geojson",
+			timeout: 1000,
+			error: function(){
+				$.ajax({
+					type: "GET",
+					dataType:"jsonp",
+					url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=pjson",
+					timeout: 1000,
+					error: function(data){
+						console.log("Bad connection");
+					},
+					success: handleEsriJSON
+				})
+			},
+			success: handleGeoJSON
+		});
+
+	}
 	
 	// thanks to Allen Lin, U of MN
 	this.addArcGISRestLayer = function(layerModel) {
@@ -2345,6 +2455,10 @@ OpenGeoportal.MapController = function() {
 		}, {
 			type : "arcgisrest",
 			onHandler : this.addArcGISRestLayer,
+			offHandler : this.hideLayer
+		}, {
+			type : "esrifeatureservice",
+			onHandler : this.addArcGISFeatureServiceLayer,
 			offHandler : this.hideLayer
 		}, {
 			type : "browsegraphic",
