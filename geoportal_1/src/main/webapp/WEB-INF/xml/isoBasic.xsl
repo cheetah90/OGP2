@@ -14,8 +14,8 @@
 		<xsl:for-each select="//gmd:MD_DataIdentification/gmd:abstract">
 			<h4>Abstract:</h4>
 			<p>
-				<!--Use copy-of so any HTML gets parsed-->
-				<xsl:copy-of select="gco:CharacterString" />
+			
+				<xsl:value-of select="gco:CharacterString" disable-output-screening="yes" />
 			</p>
 		</xsl:for-each>
 
