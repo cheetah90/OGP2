@@ -14,7 +14,8 @@
 		<xsl:for-each select="//gmd:MD_DataIdentification/gmd:abstract">
 			<h4>Abstract:</h4>
 			<p>
-				<xsl:value-of select="gco:CharacterString" />
+				<!--Use copy-of so any HTML gets parsed-->
+				<xsl:copy-of select="gco:CharacterString" />
 			</p>
 		</xsl:for-each>
 
