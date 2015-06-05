@@ -160,14 +160,8 @@ OpenGeoportal.MapController = function() {
 	 * @returns {Number} - initial zoom level
 	 */
 	this.getInitialZoomLevel = function() {
-		var initialZoom = 1;
+		var initialZoom = 6;
 
-		if (jQuery('#' + this.containerDiv).parent().height() > 810) {
-			initialZoom = 2;
-			// TODO: this should be more sophisticated. width is also important
-			// initialZoom = Math.ceil(Math.sqrt(Math.ceil(jQuery('#' +
-			// this.containerDiv).parent().height() / 256)));
-		}
 		return initialZoom;
 	};
 
@@ -182,9 +176,8 @@ OpenGeoportal.MapController = function() {
 		// set default OpenLayers map options
 		this.mapDiv = this.containerDiv + "OLMap";
 
-		var mapBounds = new OpenLayers.Bounds(-20037508.34, -20037508.34,
-				20037508.34, 20037508.34);
-
+		//var mapBounds = new OpenLayers.Bounds(-20037508.34, -20037508.34,20037508.34, 20037508.34);
+		var mapBounds = new OpenLayers.Bounds(-12392582.520094, 5121892.3906201, -8383613.2611516, 6609051.2127295);
 		var controls = this.createOLControls();
 
 		var initialZoom = this.getInitialZoomLevel();
@@ -193,8 +186,7 @@ OpenGeoportal.MapController = function() {
 			allOverlays : true,
 			projection : new OpenLayers.Projection("EPSG:3857"),
 			maxResolution : 2.8125,
-			maxExtent : mapBounds,
-			numZoomLevels: 19,
+			restrictedExtent : mapBounds,
 			units : "m",
 			zoom : initialZoom,
 			controls : controls
@@ -2322,13 +2314,13 @@ OpenGeoportal.MapController = function() {
 		$.ajax({
 			type: "GET",
 			dataType:"jsonp",
-			url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=geojson",
+			url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=geojson&resultRecordCount=1000",
 			timeout: 1000,
 			error: function(){
 				$.ajax({
 					type: "GET",
 					dataType:"jsonp",
-					url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=pjson",
+					url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=pjson&resultRecordCount=1000",
 					timeout: 1000,
 					error: function(data){
 						console.log("Bad connection");
