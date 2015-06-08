@@ -176,7 +176,7 @@ OpenGeoportal.MapController = function() {
 		// set default OpenLayers map options
 		this.mapDiv = this.containerDiv + "OLMap";
 
-		//var mapBounds = new OpenLayers.Bounds(-20037508.34, -20037508.34,20037508.34, 20037508.34);
+		var maxBounds = new OpenLayers.Bounds(-20037508.34, -20037508.34,20037508.34, 20037508.34);
 		var mapBounds = new OpenLayers.Bounds(-12392582.520094, 5121892.3906201, -8383613.2611516, 6609051.2127295);
 		var controls = this.createOLControls();
 
@@ -186,6 +186,7 @@ OpenGeoportal.MapController = function() {
 			allOverlays : true,
 			projection : new OpenLayers.Projection("EPSG:3857"),
 			maxResolution : 2.8125,
+			maxExtent: maxBounds,
 			restrictedExtent : mapBounds,
 			units : "m",
 			zoom : initialZoom,
