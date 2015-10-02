@@ -10,7 +10,7 @@
 	type="text/css" />
 
 
-<!-- ogp javascript library files -->
+<!-- ogp javascript library files 
 <script src="//cdn.jsdelivr.net/underscorejs/1.6.0/underscore-min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="//cdn.jsdelivr.net/backbonejs/1.1.2/backbone-min.js"></script>
@@ -21,7 +21,7 @@
 <script src="//maps.google.com/maps/api/js?v=3.10&sensor=false"></script>
 <script src="resources/javascript/openlayers/OpenLayers-2.11/OpenLayers.js"></script>
 <script src="resources/javascript/panZoom.js"></script>
-
+-->
 
 
 <script type="text/javascript" src="resources/javascript/lib/models/config.js"></script>

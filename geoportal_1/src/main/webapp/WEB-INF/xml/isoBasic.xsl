@@ -15,7 +15,7 @@
 			<h4>Abstract:</h4>
 			<p>
 			
-				<xsl:value-of select="gco:CharacterString" disable-output-screening="yes" />
+				<xsl:value-of select="gco:CharacterString" disable-output-escaping="yes" />
 			</p>
 		</xsl:for-each>
 

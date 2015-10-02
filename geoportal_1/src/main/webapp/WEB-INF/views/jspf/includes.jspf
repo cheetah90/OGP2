@@ -2,6 +2,8 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="//cdn.jsdelivr.net/backbonejs/1.1.2/backbone-min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="//cdn-geoweb.s3.amazonaws.com/terraformer/1.0.4/terraformer.min.js"></script>
+<script src="//cdn-geoweb.s3.amazonaws.com/terraformer-arcgis-parser/1.0.4/terraformer-arcgis-parser.min.js"></script>
 <script src="resources/javascript/jquery.scrollTo-min.js"></script>
 <script src="resources/javascript/spinners/spinners/spinners.min.js"></script>
 <script src="resources/javascript/jquery.ba-postmessage.min.js"></script>
