@@ -2233,11 +2233,15 @@ OpenGeoportal.MapController = function() {
 
 			//Get the CRS for GeoJSON
 			var crsNumber;
-			if(data.spatialReference.wkid<32767){
-				crsNumber = data.spatialReference.wkid
-			} else
+			if(data.spatialReference.latestWkid){
+				crsNumber = data.spatialReference.latestWkid;
+			} 
+			else if (data.spatialReference.wkid){
+				crsNumber = data.spatialReference.wkid;
+			}
+			else {
 				console.error("The CRS number in Esri JSON is not matched with EPSG number!");
-
+			}
 			var geojson = {};
 			geojson["type"] = "FeatureCollection";
 			geojson["crs"] = {};
@@ -2315,13 +2319,13 @@ OpenGeoportal.MapController = function() {
 		$.ajax({
 			type: "GET",
 			dataType:"jsonp",
-			url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=geojson&resultRecordCount=1000",
+			url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=geojson&maxRecordCount=1000",
 			timeout: 1000,
 			error: function(){
 				$.ajax({
 					type: "GET",
 					dataType:"jsonp",
-					url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=pjson&resultRecordCount=1000",
+					url: featureServiceEndpoint+"query?where=1=1&returnGeometry=true&returnIdsOnly=false&f=pjson&maxRecordCount=1000",
 					timeout: 1000,
 					error: function(data){
 						console.log("Bad connection");
