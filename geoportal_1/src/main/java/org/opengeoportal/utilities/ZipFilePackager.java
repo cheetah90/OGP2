@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class contains utility methods for zipping and unzipping files
- * 
+ *
  * @author Chris Barnett
  */
 public class ZipFilePackager{
@@ -29,17 +29,17 @@ public class ZipFilePackager{
 	 * Adds a set of files to a zip archive.
 	 * @param Set<File> filesToPackage
 	 * @param File zipArchive
-	 * 
-	 * @throws FileNotFoundException 
+	 *
+	 * @throws FileNotFoundException
 	 */
 	final static Logger logger = LoggerFactory.getLogger(ZipFilePackager.class.getName());
 
 	/**
 	 * Zips up a File
-	 * 
-	 * This method creates a zip archive in the File's current directory with the File's name appended with ".zip".  
+	 *
+	 * This method creates a zip archive in the File's current directory with the File's name appended with ".zip".
 	 * Once the archive is created, the original file is deleted.
-	 * 
+	 *
 	 * @param fileToZip		a File to zip
 	 * @return the zipped File
 	 * @throws IOException 	if there is a problem reading or writing a File
@@ -72,13 +72,13 @@ public class ZipFilePackager{
 		}
 		return zipFile;
 	}
-	
-	
+
+
 	/**
 	 * Adds a Set of Files to an existing Zip Archive
-	 * 
+	 *
 	 * Adds a new ZipArchive entry for each of a Set of Files to a Zip Archive
-	 * 
+	 *
 	 * @param filesToPackage	a Set of Files to add to a zip archive
 	 * @param zipArchive		the zip archive to add the passed Set of Files to
 	 * @throws IOException
@@ -97,7 +97,7 @@ public class ZipFilePackager{
 	    		return;
 	    	}
 	    }
-	    
+
 	    ZipArchiveOutputStream newZipStream = null;
 	    try{
 	    	newZipStream = new ZipArchiveOutputStream(zipArchive);
@@ -134,7 +134,7 @@ public class ZipFilePackager{
 	    					currentZipStream = new ZipArchiveInputStream(currentFileStream);
 
 	    					while ((currentEntry = currentZipStream.getNextEntry()) != null) {
-	    						String entryName = currentEntry.getName();
+	    						String entryName = currentFile.getName().replace(".zip","/") + currentEntry.getName();
 	    						logger.debug("Zipping: " + entryName);
 	    						ZipArchiveEntry zipEntry = new ZipArchiveEntry(entryName);
 	    						try {
@@ -153,7 +153,7 @@ public class ZipFilePackager{
 	    					newZipStream.closeArchiveEntry();
 	    					IOUtils.closeQuietly(currentZipStream);
 	    				}
-	    			}	
+	    			}
 	    		} catch (FileNotFoundException e) {
 	    			String filename = currentFile.getName();
 	    			logger.error("File not found ['" + filename + "']");
@@ -179,12 +179,12 @@ public class ZipFilePackager{
 
 	/**
 	 * Unzips a zipped archive into a Set of Files
-	 * 
+	 *
 	 * @param zipArchive	archive File to unzip
 	 * @return	a Set of Files from the archive
 	 * @throws Exception
 	 */
-	
+
 	public static Set<File> unarchiveFiles(File zipArchive) throws Exception {
 		Set<File> unarchivedFiles = new HashSet<File>();
     	try{
@@ -204,12 +204,12 @@ public class ZipFilePackager{
     		}
     		ZipFile zipFile = new ZipFile(zipArchive);
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntriesInPhysicalOrder();
-			
+
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry currentEntry = entries.nextElement();
 				String entryName = currentEntry.getName();
 				logger.debug("Current entry: " + entryName);
-				try { 
+				try {
 					logger.debug(zipArchive.getParent() + "/" + currentEntry.getName());
 					File destFile = new File(containerDir, currentEntry.getName());
 					if (currentEntry.isDirectory()){
@@ -232,7 +232,7 @@ public class ZipFilePackager{
 						} finally {
 							IOUtils.closeQuietly(zipStream);
 							IOUtils.closeQuietly(fos);
-							
+
 						}
 						unarchivedFiles.add(destFile);
 						logger.info("Unzipped file : " + destFile.getName());
@@ -243,9 +243,9 @@ public class ZipFilePackager{
 					break;
 				}
 			}
-			
+
 			zipFile.close();
-			
+
 	} catch (FileNotFoundException e) {
 		logger.error("file not found exception");
 		//e.printStackTrace();

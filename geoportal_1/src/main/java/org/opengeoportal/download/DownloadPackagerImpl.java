@@ -24,7 +24,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 
 /**
  * packages downloaded layers together in a zip file. should be called by download job if certain conditions are met (downloads are finished)
- * 
+ *
  * @author Chris Barnett
  *
  */
@@ -38,8 +38,8 @@ public class DownloadPackagerImpl implements DownloadPackager {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/**
-	 * @throws Exception 
-	 * 
+	 * @throws Exception
+	 *
 	 */
 	@Async
 	public Future<Boolean> packageFiles(UUID requestId) throws Exception{
@@ -55,7 +55,6 @@ public class DownloadPackagerImpl implements DownloadPackager {
 			layerList.addAll(request.getRequestList());
 		}
 		Set<File> filesToPackage = getFilesToPackage(layerList);
-
 		logger.debug(directory.getAbsolutePath());
 		logger.info("Packaging files");
 		File zipArchive = new File(directory, "OGPDownload.zip");
@@ -63,7 +62,7 @@ public class DownloadPackagerImpl implements DownloadPackager {
 		downloadRequest.setDownloadPackage(zipArchive);
 		return new AsyncResult<Boolean>(true);
 	}
-	
+
 	private Set<File> getFilesToPackage(List<LayerRequest> layers) throws Exception{
 		//we can get this from the DownloadStatusManager
 		logger.debug("Getting files to package...");
@@ -106,7 +105,7 @@ public class DownloadPackagerImpl implements DownloadPackager {
 
 		return filesToPackage;
 	}
-	
+
 	private void addMetadata(File directory, LayerRequest layer){
 		//get metadata for this layer, add the resulting xml file to the file list
 		logger.info("Retrieving metadata...");
@@ -126,7 +125,7 @@ public class DownloadPackagerImpl implements DownloadPackager {
 			//couldn't get the metadata, but don't kill the download
 			logger.error(e.getMessage());
 			e.printStackTrace();
-		} 
+		}
 	}
 
 }
