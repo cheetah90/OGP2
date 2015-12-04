@@ -1368,7 +1368,7 @@ Backbone table view
 .rowContainer {
 	overflow-y: auto;	
 	overflow-x: hidden;
-	white-space: nowrap;
+	/*white-space: nowrap;*/
 }
 
 #searchResults > .tableWrapper > .rowContainer {
@@ -1410,14 +1410,15 @@ Backbone table view
     text-align: center;
     height: 18px;
     vertical-align: top;
-    overflow: hidden;
+
 }
 
 .rowContainer .tableCell {
-	    height: 17px;
-	    color: #4E4E4E;
-	    overflow: hidden;
-    	padding: 2px 4px 2px 3px;
+    height: 38px;
+    color: #4E4E4E;
+    overflow-y: hidden;
+	overflow-x: auto;
+	padding: 2px 4px 2px 3px;
 }
 
 .tableCell > div {
@@ -1430,11 +1431,12 @@ Backbone table view
 	width: 100%;
 	margin-left: 2px;
     margin-right: 2px;
-    overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: auto;
     font-size: 11px;
-    height: 17px;
-    line-height: 17px;
-    word-break: break-all;
+    height: 38px;
+    line-height: 13px;
+    word-break: break-word;
 }
 
 td.colTitle {
@@ -1640,6 +1642,10 @@ icons
 	vertical-align: middle;
 }
 
+.typeIcon, .repositoryIcon, .viewMetadataControl, .saveControl, .previewControl, .expandControl {
+	position: relative;
+	top: 25%;
+}
 
 
 /*************
