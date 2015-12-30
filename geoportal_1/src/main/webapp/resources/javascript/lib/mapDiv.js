@@ -46,8 +46,8 @@ OpenGeoportal.MapController = function() {
 	 */
 	this.initMap = function(containerDiv, userOptions) {
 		// would passing a jQuery object be preferable to the string id?
-		if ((typeof containerDiv === 'undefined')
-				|| (containerDiv.length === 0)) {
+		if ((typeof containerDiv === 'undefined')||
+			(containerDiv.length === 0)) {
 			throw new Error("The id of the map div must be specified.");
 		}
 		this.containerDiv = containerDiv;
@@ -734,7 +734,7 @@ OpenGeoportal.MapController = function() {
 							for ( var i in that.getLayersBy("ogpLayerId",
 									data.LayerId)) {
 								that.getLayersBy("ogpLayerId", data.LayerId)[0]
-										.setOpacity(data.opacity * .01);
+										.setOpacity(data.opacity * 0.01);
 							}
 						});
 	};
@@ -778,7 +778,7 @@ OpenGeoportal.MapController = function() {
 							// console.log(layerId);
 							var layers = that
 									.getLayersBy("ogpLayerId", layerId);
-							if (layers.length == 0) {
+							if (layers.length === 0) {
 								// layer is not in OpenLayers...
 								throw new Error(
 										"This layer has not yet been previewed.  Please preview it first.");
@@ -792,7 +792,7 @@ OpenGeoportal.MapController = function() {
 				function(event, data) {
 					var layerId = data.LayerId;
 					var layers = that.getLayersBy("ogpLayerId", layerId);
-					if (layers.length == 0) {
+					if (layers.length === 0) {
 						// layer is not in OpenLayers...add it?
 					} else {
 						that.events.unregister("click", layers[0],
@@ -1136,8 +1136,8 @@ OpenGeoportal.MapController = function() {
 
 		if (layerModel.has("wmsProxy")) {
 			populateUrlArray([ layerModel.get("wmsProxy") ]);
-		} else if ((typeof layerModel.get("Location").tilecache !== "undefined")
-				&& useTilecache) {
+		} else if ((typeof layerModel.get("Location").tilecache !== "undefined") &&
+				useTilecache) {
 			populateUrlArray(layerModel.get("Location").tilecache);
 		} else {
 			populateUrlArray(layerModel.get("Location").wms);
@@ -1206,7 +1206,7 @@ OpenGeoportal.MapController = function() {
 		 */
 		style_blue.strokeColor = "#1D6EEF";
 		style_blue.fillColor = "#DAEDFF";
-		style_blue.fillOpacity = .25;
+		style_blue.fillOpacity = 0.25;
 		style_blue.pointRadius = 10;
 		style_blue.strokeWidth = 4;
 		style_blue.strokeLinecap = "butt";
@@ -1314,8 +1314,8 @@ OpenGeoportal.MapController = function() {
 			extent.Right = mapRight;
 		}
 
-		if (layerLeft < mapLeft || layerRight > mapRight || layerTop > mapTop
-				|| layerBottom < mapBottom) {
+		if (layerLeft < mapLeft || layerRight > mapRight || layerTop > mapTop ||
+				layerBottom < mapBottom) {
 			// console.log("should show arrow");
 
 			if (layerTop < mapTop && layerBottom > mapBottom) {
@@ -1414,9 +1414,9 @@ OpenGeoportal.MapController = function() {
 			});
 			if (typeof layerModel == "undefined") {
 				throw new Error(
-						"Layer ['"
-								+ currentLayer.ogpLayerId
-								+ "'] could not be found in the PreviewedLayers collection.");
+						"Layer ['" +
+						currentLayer.ogpLayerId +
+						"'] could not be found in the PreviewedLayers collection.");
 			}
 			var sld = layerModel.get("sld");
 			var opacity = layerModel.get("opacity");
@@ -1559,10 +1559,8 @@ OpenGeoportal.MapController = function() {
 								// looked up
 							} else {
 								var solr = new OpenGeoportal.Solr();
-								var query = solr.getServerName()
-										+ "?"
-										+ jQuery.param(solr
-												.getMetadataParams(layerId));
+								var query = solr.getServerName() + "?" +
+									jQuery.param(solr.getMetadataParams(layerId));
 								jQuery(".attributeName").css("cursor", "wait");
 								solr
 										.sendToSolr(
@@ -1771,8 +1769,9 @@ OpenGeoportal.MapController = function() {
 						cells$.each(function() {
 							var cellText = jQuery(this).text().trim();
 							if (cellText.indexOf('http') === 0) {
-								cellText = '<a href="' + cellText + '">'
-										+ cellText + '</a>';
+								cellText = '<a href="' +
+									cellText + '">' +
+									cellText + '</a>';
 							}
 							rowArr.push(cellText);
 						});
@@ -2114,7 +2113,7 @@ OpenGeoportal.MapController = function() {
 
 			//see if used url matches the tilecache url
 			if (layerModel.get("Location").tilecache[0] === url){
-				layerName = layerModel.get("tilecacheName")
+				layerName = layerModel.get("tilecacheName");
 			} else {
 				layerName = qualifiedName;
 			}
@@ -2150,8 +2149,7 @@ OpenGeoportal.MapController = function() {
 		}
 
 		if (matchingLayers.length > 1) {
-			console
-					.log("ERROR: There should never be more than one copy of the layer on the map");
+			console.log("ERROR: There should never be more than one copy of the layer on the map");
 		}
 
 		// use a tilecache if we are aware of it
@@ -2169,9 +2167,7 @@ OpenGeoportal.MapController = function() {
 			format = "image/png";
 		}
 
-
 		var that = this;
-
 
 		// we do a check to see if the layer exists before we add it
 		jQuery("body").bind(layerModel.get("LayerId") + 'Exists',
@@ -2223,127 +2219,184 @@ OpenGeoportal.MapController = function() {
 		window.open(newWindowURL, "_blank","toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
 	};
 
+	this._handleGeoJSON = function(data, layerModel, scope){
+		var that = scope;
+		var layerId = layerModel.get("LayerId");
+		jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerId});
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var vector_layer;
+		var existing_layer = that.getLayersBy("ogpLayerId", layerId);
+		if (existing_layer.length === 1){
+			vector_layer = existing_layer[0];
+		}
+		else {
+			vector_layer = new OpenLayers.Layer.Vector();
+			vector_layer.ogpLayerId = layerModel.get("LayerId");
+			vector_layer.projection = new OpenLayers.Projection("EPSG:3857");
+			that.addLayer(vector_layer);
+		}
+
+		vector_layer.addFeatures(geojson_format.read(data));
+	};
+
+	this._handleEsriJSON = function(data, layerModel, scope){
+		var that = scope;
+		var vector_layer;
+
+		jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+		var featuresArray = data.features;
+
+		//Get the CRS for GeoJSON
+		var crsNumber;
+		if(data.spatialReference.hasOwnProperty("latestWkid")){
+			crsNumber = data.spatialReference.latestWkid;
+		}
+		else if (data.spatialReference.wkid){
+			crsNumber = data.spatialReference.wkid;
+		}
+		else {
+			console.error("The CRS number in Esri JSON is not matched with EPSG number!");
+		}
+		var geojson = {};
+		geojson.type = "FeatureCollection";
+		geojson.crs = {};
+		geojson.crs.type = "name";
+		geojson.crs.properties = {};
+		geojson.crs.properties.name = "EPSG:" + crsNumber;
+
+		var geojsonArray = [];
+		for(i = 0; i < featuresArray.length;i++){
+
+			var arcgisGeometry = {};
+			var geojsonObject = {};
+
+			arcgisGeometry.x = parseFloat(featuresArray[i].geometry.x);
+			arcgisGeometry.y = parseFloat(featuresArray[i].geometry.y);
+
+			if(arcgisGeometry.x<-180||arcgisGeometry.x>180||arcgisGeometry.y<-90||arcgisGeometry.y>90){
+				continue;
+			}
+
+			geojsonObject.geometry = Terraformer.ArcGIS.parse(arcgisGeometry);
+			geojsonObject.type = 'Feature';
+
+			geojsonArray.push(geojsonObject);
+		}
+
+		geojson.features = geojsonArray;
+
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+
+		var existing_layer = that.getLayersBy("ogpLayerId", layerId);
+		if (existing_layer.length === 1){
+			vector_layer = existing_layer[0];
+		}
+		else {
+			vector_layer = new OpenLayers.Layer.Vector();
+			vector_layer.ogpLayerId = layerModel.get("LayerId");
+			vector_layer.projection = new OpenLayers.Projection("EPSG:3857");
+			that.addLayer(vector_layer);
+		}
+
+		vector_layer.addFeatures(geojson_format.read(geojson));
+	};
+
+	this._requestArcGISFeatureLayer = function(layerModel, options){
+		var that = this;
+		var options = options || {};
+		var record_count = options.record_count || 2000;
+		var record_offset = options.record_offset || 0;
+		var more_records = options.more_records || false;
+		var timeout_length = options.timeout_length || 5000;
+		var success_handler;
+		var format;
+		var featureServiceEndpoint = layerModel.get("Location").esrifeatureservice;
+		var layerId = layerModel.get("LayerId");
+
+		//TODO change this when geojson rolls out to ArcGIS Server. Will need
+		//to do a server version check at that point methinks?
+		if ((/\.arcgis\.com.*?FeatureServer/g).test(featureServiceEndpoint)){
+			format = "geojson";
+			success_handler = this._handleGeoJSON;
+		}
+		else {
+			format = "pjson";
+			success_handler = this._handleEsriJSON;
+		}
+		var existing_layer = that.getLayersBy("ogpLayerId", layerId);
+		if (existing_layer.length === 1){
+			if (existing_layer[0].visibility === false){
+				//if the layer exists but is not visible, that means it was removed,
+				//so bail out of the flow
+				jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+				return;
+			}
+			record_offset = existing_layer[0].features.length;
+		}
+
+		var req = function(){
+			return $.ajax({
+				type: "GET",
+				dataType:"jsonp",
+				url: featureServiceEndpoint + "query?where=1=1&maxAllowableOffset=1&resultOffset="+ record_offset +"&returnGeometry=true&f=" + format + "&resultRecordCount="+ record_count,
+				timeout: timeout_length,
+				error: function(data, status, error){
+					if (status !== "timeout"){
+						jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+						throw new Error("Server error");
+					}
+					else {
+						console.log("TIMEOUT: try again");
+						new_timeout_length = timeout_length + 5000;
+						that._requestArcGISFeatureLayer(layerModel, {
+							timeout_length: new_timeout_length,
+							record_count: record_count,
+							record_offset: record_offset
+						});
+					}
+				},
+				success: function(data){
+					success_handler(data, layerModel, that);
+					if (data.hasOwnProperty("properties") &&
+						data.properties.hasOwnProperty("exceededTransferLimit") &&
+						data.properties.exceededTransferLimit === true){
+							jQuery(document).trigger({type: "showLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
+							console.log(record_offset + data.features.length, "features added.");
+							that._requestArcGISFeatureLayer(layerModel, {
+								timeout_length: timeout_length,
+								record_count: data.features.length,
+								record_offset: record_offset + data.features.length
+							});
+
+					}
+				}
+			});
+		}();
+	};
+
 	/**
 	 * Test the visualization of Esri's Feature Service // Allen Lin from U of M
 	 * @param layerModel
 	 */
 	this.addArcGISFeatureServiceLayer = function(layerModel){
-		var handleEsriJSON = function(data){
-			var featuresArray = data.features;
-
-			//Get the CRS for GeoJSON
-			var crsNumber;
-			if(data.spatialReference.latestWkid){
-				crsNumber = data.spatialReference.latestWkid;
+		var vector_layer;
+		var layerId = layerModel.get("LayerId");
+		var existing_layer = this.getLayersBy("ogpLayerId", layerId);
+		if (existing_layer.length === 1){
+			vector_layer = existing_layer[0];
+			if (vector_layer.visibility === false){
+				vector_layer.setVisibility(true);
 			}
-			else if (data.spatialReference.wkid){
-				crsNumber = data.spatialReference.wkid;
-			}
-			else {
-				console.error("The CRS number in Esri JSON is not matched with EPSG number!");
-			}
-			var geojson = {};
-			geojson["type"] = "FeatureCollection";
-			geojson["crs"] = {};
-			geojson["crs"]["type"] = "name";
-			geojson["crs"]["properties"]={};
-			geojson["crs"]["properties"]["name"] = "EPSG:" + crsNumber;
-
-			var geojsonArray = [];
-			for(i = 0; i < featuresArray.length;i++){
-
-				var arcgisGeometry = {};
-				var geojsonObject = {};
-
-				arcgisGeometry.x = parseFloat(featuresArray[i].geometry.x);
-				arcgisGeometry.y = parseFloat(featuresArray[i].geometry.y);
-
-				if(arcgisGeometry.x<-180||arcgisGeometry.x>180||arcgisGeometry.y<-90||arcgisGeometry.y>90){
-					continue;
-				}
-
-				geojsonObject.geometry = Terraformer.ArcGIS.parse(arcgisGeometry);
-				geojsonObject.type = 'Feature';
-
-				geojsonArray.push(geojsonObject);
-			}
-
-			geojson.features = geojsonArray;
-
-			var geojson_format = new OpenLayers.Format.GeoJSON();
-			var newLayer = new OpenLayers.Layer.Vector();
-			newLayer.addFeatures(geojson_format.read(geojson));
-
-			newLayer.projection = new OpenLayers.Projection("EPSG:3857");
-			jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
-
-
-			var that2 = that;
-			// we do a cursory check to see if the layer exists before we add it
-			jQuery("body").bind(newLayer.ogpLayerId + 'Exists', function() {
-				that2.addLayer(newLayer);
-			});
-			that.layerExists(layerModel);
-		};
-
-		var handleGeoJSON = function(data){
-			var geojson_format = new OpenLayers.Format.GeoJSON();
-			var newLayer = new OpenLayers.Layer.Vector();
-			newLayer.addFeatures(geojson_format.read(data));
-			newLayer.ogpLayerId = layerModel.get("LayerId");
-
-			newLayer.projection = new OpenLayers.Projection("EPSG:3857");
-			// how should this change? trigger custom events with jQuery
-
-
-
-			jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
-
-			var that2 = that
-			// we do a cursory check to see if the layer exists before we add it
-			jQuery("body").bind(newLayer.ogpLayerId + 'Exists', function() {
-				that2.addLayer(newLayer);
-			});
-			that.layerExists(layerModel);
-		};
-
-		var featureServiceEndpoint = layerModel.get("Location").esrifeatureservice;
-		var that = this;
+		}
+		else {
+			vector_layer = new OpenLayers.Layer.Vector();
+			vector_layer.ogpLayerId = layerId;
+			vector_layer.projection = new OpenLayers.Projection("EPSG:3857");
+			this.addLayer(vector_layer);
+		}
+		this._requestArcGISFeatureLayer(layerModel);
 		jQuery(document).trigger({type: "showLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
-		var format = "geojson";
-		var record_count = "2000";
-		var timeout_length = 5000;
-		var success_handler = handleGeoJSON;
-		$.ajax({
-			type: "GET",
-			dataType:"jsonp",
-			url: featureServiceEndpoint + "query?where=1=1&maxAllowableOffset=1&returnGeometry=true&returnIdsOnly=false&f=" + format + "&resultRecordCount="+ record_count,
-			timeout: timeout_length,
-			error: function(data, status, error){
-				if (status !== "timeout"){
-					format = "pjson";
-					success_handler = handleEsriJSON;
-				}
-				else {
-					record_count = "1000";
-					timeout_length = 10000;
-				}
-				$.ajax({
-					type: "GET",
-					dataType:"jsonp",
-					url: featureServiceEndpoint + "query?where=1=1&maxAllowableOffset=1&returnGeometry=true&returnIdsOnly=false&f=" + format + "&resultRecordCount="+ record_count,
-					timeout: timeout_length,
-					error: function(data, status, error){
-						console.log("Error: " + status);
-						jQuery(document).trigger({type: "hideLoadIndicator", loadType: "layerLoad", layerId: layerModel.get("LayerId")});
-					},
-					success: success_handler
-				})
-			},
-			success: success_handler
-		});
-
-	}
+	};
 
 	// thanks to Allen Lin, U of MN
 	this.addArcGISRestLayer = function(layerModel) {
@@ -2387,11 +2440,11 @@ OpenGeoportal.MapController = function() {
 	};
 
 	this.previewBrowseGraphic = function(layerModel) {
-		var dialogHtml = '<img src="'
-				+ layerModel.get("Location").browseGraphic + '"/>';
+		var dialogHtml = '<img src="' +
+			layerModel.get("Location").browseGraphic + '"/>';
 		if (typeof jQuery('#browseGraphic')[0] == 'undefined') {
-			var infoDiv = '<div id="browseGraphic" class="dialog">'
-					+ dialogHtml + '</div>';
+			var infoDiv = '<div id="browseGraphic" class="dialog">' +
+				dialogHtml + '</div>';
 			jQuery("body").append(infoDiv);
 			jQuery("#browseGraphic").dialog({
 				zIndex : 2999,
@@ -2493,8 +2546,8 @@ OpenGeoportal.MapController = function() {
 			LayerId : layerId
 		});
 		if (typeof currModel === "undefined") {
-			throw new Error("Layer['" + layerId
-					+ "'] not found in PreviewedLayers collection.");
+			throw new Error("Layer['" + layerId +
+				"'] not found in PreviewedLayers collection.");
 		}
 
 		try {

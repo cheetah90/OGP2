@@ -1,4 +1,3 @@
-	
 if (typeof OpenGeoportal === 'undefined') {
 	OpenGeoportal = {};
 } else if (typeof OpenGeoportal !== "object") {
@@ -46,15 +45,15 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 		var checkedModels = this.collection.where({
 			isChecked : true
 		});
-		
+
 		return checkedModels;
 	},
-	
+
 	removeRows: function() {
 
 		this.collection.remove(this.getCheckedRows());
 	},
-	
+
 	addCartHeaderButton: function(buttonId, buttonLabel, helpText,
 			listLabel, clickHandler, hoverHandler) {
 		var that = this;
@@ -63,16 +62,16 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 			that.displayOptionText(event, helpText, listLabel);
 			hoverHandler.call(that);
 		});
-		
-		
+
+
 	},
-	
+
 	createCartButtons: function() {
 
 		var that = this;
-		var mapItHtml = "Open highlighted layers in GeoCommons to create maps.";
+		//var mapItHtml = "Open highlighted layers in GeoCommons to create maps.";
 		var shareHtml = "Create a link to share this Cart.";
-		var webServiceHtml = "Stream highlighted layers into an application.";
+		//var webServiceHtml = "Stream highlighted layers into an application.";
 		var downloadHtml = "Download highlighted layers to your computer.";
 		var removeHtml = "Remove selected layers from Cart.";
 
@@ -90,15 +89,15 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 					if (model.get("LayerId") === appModel.get("LayerId")){
 						model.set({actionAvailable: "yes"});
 						isTrue = true;
-					} 
+					}
 				});
-				if (!isTrue){
+			if (!isTrue){
 					model.set({actionAvailable: "no"});
 				}
 			});
-			
+
 		};
-		
+
 		var removeHover = function(){
 			var arrRows = that.getCheckedRows();
 			applyMarker(arrRows);
@@ -110,14 +109,14 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 			//could pass back messages via notify/progress as well
 			//promise.done(function(){console.log("removing view");view.remove();});
 		};
-		
+
 		var viewHover = function(view){
 			var arrRows = view.getApplicableLayers();
 			applyMarker(arrRows);
 
 			view.remove();
 		};
-		
+
 		var downloadClick = function() {
 			//create a view instance
 			var view = new OpenGeoportal.Views.Download({collection: that.collection});
@@ -127,19 +126,21 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 			var view = new OpenGeoportal.Views.Download({collection: that.collection});
 			viewHover(view);
 		};
-		
+		/*
 		var webServicesClick = function() {
 			//create a view instance
 			var view = new OpenGeoportal.Views.WebServices({collection: that.collection});
 			viewClick(view);
 
 		};
+		*/
+		/*
 		var webServicesHover = function(){
 			var view = new OpenGeoportal.Views.WebServices({collection: that.collection});
 			viewHover(view);
 
 		};
-		
+		*/
 		var shareCartClick = function() {
 			//create a view instance
 			var view = new OpenGeoportal.Views.ShareCart({collection: that.collection});
@@ -150,30 +151,33 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 			var view = new OpenGeoportal.Views.ShareCart({collection: that.collection});
 			viewHover(view);
 		};
-		
+
+		/*
 		var mapItClick = function(model) {
 			//create a view instance
 			var view = new OpenGeoportal.Views.MapIt({collection: that.collection});
 			viewClick(view);
 
 		};
-		var mapItHover = function(){
+
+		var mapItHover = nction(){
 			var view = new OpenGeoportal.Views.MapIt({collection: that.collection});
 			viewHover(view);
 
 		};
-		
+		*/
 		this.addCartHeaderButton("removeFromCartButton", "Remove", removeHtml,
 				"removeFromCart", removeClick, removeHover);
 		this.addCartHeaderButton("downloadButton", "Download", downloadHtml,
 				"download", downloadClick, downloadHover);
-		this.addCartHeaderButton("webServiceButton", "Web Service",
-				webServiceHtml, "webService", webServicesClick,
-				webServicesHover);
+
+		// this.addCartHeaderon("webServiceButton", "Web Service",
+		// 		webServiceHtml, "webService", webServicesClick,
+		// 		webServicesHover);
 		this.addCartHeaderButton("shareButton", "Share", shareHtml,
 				"shareLink", shareCartClick, shareCartHover);
-		this.addCartHeaderButton("mapItButton", "MapIt", mapItHtml, "mapIt",
-				mapItClick, mapItHover);
+		// this.addCartHeaderButton("mapItButton", "MapIt", mapItHtml, "mapIt",
+		// 		mapItClick, mapItHover);
 
 		// Hover handler
 		var hideDetails = function() {
@@ -190,4 +194,3 @@ OpenGeoportal.Views.CartHeader = Backbone.View.extend({
 
 	}
 });
-	

@@ -12,7 +12,7 @@ if (typeof OpenGeoportal.Views === 'undefined') {
 
 /**
  * A Backbone View of the Cart Collection
- * 
+ *
  * @constructor
  */
 
@@ -38,8 +38,8 @@ OpenGeoportal.Models.DownloadPreferences = Backbone.Model.extend({
 				formatDisplay : "KMZ (KML)"
 			} ]
 		},
-		vectorChoice : "",
-		rasterChoice : "",
+		vectorChoice : "shp",
+		rasterChoice : "geotiff",
 		isClipped : true
 	}
 });
@@ -75,11 +75,9 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 				// what values do we need to attempt a download?
 				return this.isDownloadAvailable(model) && model.get("isChecked");
 			},
-			
-			cartAction : function() {
-				
 
-				
+			cartAction : function() {
+
 				var sortedLayers = this.sortLayersByDownloadType();
 
 				var hasServerLayers = _.has(sortedLayers, "ogpServer") && sortedLayers.ogpServer.length > 0;
@@ -93,31 +91,34 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 
 					this.preferences = new OpenGeoportal.Models.DownloadPreferences();
 					var that = this;
-					this.setPreferences().then(this.finalizeRequest,
+					/*
+					this.setPreferences().then(,
 							this.failHandler1).then(this.sendDownloadRequest,
 							this.failHandler2);
+					*/
+					//try to cut out the download settings step, since it doesn't apply to UMN
+					this.finalizeRequest().then(this.sendDownloadRequest, this.failHandler2);
+				}
 
-				} 
-			
 				var hasClientLayers = _.has(sortedLayers, "ogpClient") && sortedLayers.ogpClient.length > 0;
 				if (hasClientLayers) {
 					// handle the downloads from the client
 					this.clientSideDownload(sortedLayers.ogpClient);
 
-				} 
-				
+				}
+
 				if (!hasServerLayers && !hasClientLayers)  {
 					if (this.collection.length === 0){
 						console.log("cart collection is empty.");
 					} else {
 						throw new Error("No valid layers in the cart collection!");
 					}
-				} 
+				}
 
 				//return this.deferred.promise();
 			},
 
-			
+
 			failHandler1 : function() {
 				alert("finalize request failed");
 			},
@@ -130,7 +131,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 				// a layer that should use client side download in
 				// OpenGeoportal.Models.CartLayer:setDownloadAttributes
 			},
-			
+
 			setDownloadAttributes : function(model) {
 				// either a download type that can be handled by OGP backend or
 				// something else, like an external link (fileDownload). Alternatively,
@@ -178,7 +179,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 				_.each(layers, function(model){
 					that.setDownloadAttributes(model);
 				});
-				
+
 				var sortedLayers = {};
 				_.each(layers, function(model) {
 					var dlType = model.get("downloadType");
@@ -294,7 +295,8 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 			setPreferences : function() {
 				var setPreferencesDeferred = jQuery.Deferred();
 				var dialogContent = this.getPreferencesSelectionContent();
-
+				this.updateModelsWithPreferences();
+				/*
 				var dialogDonePromise = this
 						.openPreferencesDialog(dialogContent);
 
@@ -311,7 +313,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 						setPreferencesDeferred.rejectWith(that);
 					}
 				});
-
+				*/
 				return setPreferencesDeferred.promise();
 
 			},
@@ -422,6 +424,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 
 			finalizeRequest : function() {
 				//console.log("starting finalize request");
+				this.updateModelsWithPreferences();
 				var finalizeRequestDeferred = jQuery.Deferred();
 				var dialogDonePromise = this.openFinalizeRequestDialog();
 
@@ -531,7 +534,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 				var dialog$ = jQuery("#" + dialogId);
 				dialog$.html(dialogContent);
 				dialog$.addClass("downloadDialog");
-				
+
 				var that = this;
 				var cancelFunction = function() {
 					jQuery(this).dialog('close');
@@ -602,7 +605,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 
 				return downloadContinue;
 			},
-			
+
 			updateRequestFromFinalize : function() {
 
 				// validate the email address
@@ -624,7 +627,7 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 				var emailLayers = [];
 				var dlLayers = [];
 				var requestQ = OpenGeoportal.ogp.appState.get("requestQueue");
-				
+
 				_.each(layers, function(model){
 					if (model.has("requiresEmail") && model.get("requiresEmail")){
 						emailLayers.push(model);
@@ -632,18 +635,18 @@ OpenGeoportal.Views.Download = OpenGeoportal.Views.CartActionView
 						dlLayers.push(model);
 					}
 				});
-				
+
 				var that = this;
 				jQuery(document).one("requestTickerRendered",
-						function(){that.showTransferAnimation($dialog);});		
-				
+						function(){that.showTransferAnimation($dialog);});
+
 				if (emailLayers.length > 0){
-					
+
 					var emailRequest = this.downloadRequest.clone();
 					emailRequest.set({layers: emailLayers});
 
 					requestQ.add(emailRequest);
-					
+
 					if (dlLayers.length > 0){
 						this.downloadRequest.set({layers: dlLayers});
 						//console.log(this.downloadRequest);

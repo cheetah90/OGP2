@@ -21,7 +21,7 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 		//since the results collection is by nature transient, we have to store some state externally
 		//listen for saved items (in cart collection)
 		this.cart = OpenGeoportal.ogp.appState.get("cart");
-		
+
 		this.expandState = OpenGeoportal.ogp.appState.get("layerState");
 		var layerState = this.expandState.findWhere({LayerId: this.model.get("LayerId")});
 		if (typeof layerState !== "undefined"){
@@ -31,14 +31,15 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 		var that = this;
 		jQuery(document).on("previewLayerOn previewLayerOff cartUpdated", this.$el, function(){that.updateView.apply(that, arguments);});
 	},
-	
+
 	onClose: function(){
 		//console.log("row view destroyed");
 		jQuery(document).off("previewLayerOn previewLayerOff cartUpdated", this.$el);
 
 	},
-	
+
 	togglePreview : function(e) {
+		var that = this;
 		var layerId = this.model.get("LayerId");
 		var model = this.previewed.findWhere({
 			LayerId : layerId
@@ -58,7 +59,7 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 			// are using different models in the previewed collection, and we
 			// want
 			// "model" to be called
-			var that = this;
+
 			this.$el.css("opacity", ".5");
 			var to$ = jQuery(".previewedLayers").find(".tableRow").last();
 			if (to$.length === 0){
@@ -69,13 +70,12 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 		} else {
 			var update = {};
 			if (model.get("preview") === "on") {
-				update.preview = "off";		
-				model.set(update);	
+				update.preview = "off";
+				model.set(update);
 
 			} else {
 				update.preview = "on";
 				update.showControls = true;
-				var that = this;
 				this.$el.css("opacity", ".5");
 				var to$ = jQuery(".previewedLayers").find(".tableRow").last();
 				if (to$.length === 0){
@@ -84,23 +84,23 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 				jQuery(e.delegateTarget).effect("transfer", { to: to$, easing: "swing", className: "ui-effects-transfer" }, 400, function(){model.set(update); that.$el.css("opacity", "1"); that.model.set({hidden: true});});
 			}
 		}
-	
+
 	},
-	
+
 	toggleExpand : function() {
 		// console.log("toggleExpand");
 		var controls = this.model.get("showControls");
 		this.model.set({
 			showControls : !controls
 		});
-		
+
 		this.expandState.setExpandState(this.model.get("LayerId"), !controls);
 	},
-	
+
 	/*
-	 * functions to display the abstract from the metadata in the expanded row, rather than the preview controls 
+	 * functions to display the abstract from the metadata in the expanded row, rather than the preview controls
 	 */
-	
+
 	/*
 	renderExpand: function(){
 		var expand$ = "";
@@ -113,15 +113,15 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 			}
 			expand$ = '<div class="layerInfo">' + description + '</div>';
 		}
-		
+
 		return expand$;
 	},
-		
+
 
 	infoColumn: "Abstract",
-	
+
 	getLayerInfoFromSolr: function() {
-		
+
 		// make an ajax call to retrieve data from solr
 		var solr = new OpenGeoportal.Solr();
 		var url = solr.getServerName() + "?"
@@ -130,36 +130,37 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 				this.getInfoError, this);
 
 	},
-	
+
 	getInfoSuccess: function(data){
 		var description = data.response.docs[0][this.infoColumn];
 		this.model.set({layerInfo: description});
 		this.$el.find(".layerInfo").text(description);
 	},
-	
+
 	getInfoError: function(){
 		console.log("error getting info");
 	},
 	*/
-	
+
 	broadcastModel: function(){
 		this.$el.closest(".rowContainer").trigger("topmodel", [this.model]);
 	},
-	
+
 	skipLayer: function(){
 		if (this.model.has("hidden") && this.model.get("hidden")){
 			return true;
 		}
 		return false;
 	},
-	
+
 	toggleSave: function(e){
 		//if not in cart, add it.  if in cart, remove it.
 		if (this.model.get("Location").externalDownload){
+			var dialog_width = jQuery(window).width() > 900 ? 800 : 400;
 		    var iframeDiv = jQuery("<div></div>");
-		    var iframeLoadingText = jQuery("<h2>Loading...</h2>")
+		    var iframeLoadingText = jQuery("<h2>Loading...</h2>");
 			iframeLoadingText.addClass("iframe-loading-text");
-			
+
 		    var iframe = jQuery("<iframe></iframe>")
                 .addClass("external-download-iframe")
                 .attr("src",this.model.get("Location").externalDownload)
@@ -170,7 +171,7 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 
 		    iframeDiv.append(iframeLoadingText);
 		    iframeDiv.append(iframe);
-		    
+
 		    var iframeObject = iframe.get()[0];
 
 		    if (iframeObject.attachEvent){
@@ -184,14 +185,14 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
                     $(".external-download-iframe").show();
                 };
 		    }
-    
+
             iframeDiv.append("<span><a href='" + this.model.get("Location").externalDownload +
                 "' target='_none'>Open in a new window</a></span>");
 
 		jQuery(iframeDiv).dialog({
 			modal: true,
 			draggable: true,
-			width: 400,
+			width: dialog_width,
 			height: 400,
 			buttons: [
 				{
@@ -211,6 +212,6 @@ OpenGeoportal.Views.SearchResultsRow = OpenGeoportal.Views.LayerRow.extend({
 			} else {
 				this.cart.toggleCartState(this.model);
 			}
-		}		
+		}
 	}
 });
