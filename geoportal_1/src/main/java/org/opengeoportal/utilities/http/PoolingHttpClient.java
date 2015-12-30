@@ -37,13 +37,17 @@ public class PoolingHttpClient implements OgpHttpClient {
 	private Boolean initCalled = false;
 	int maxConnections;
 	int maxConnectionsRt;
-	
+
 	@Autowired
 	private ProxyConfigRetriever proxyConfigRetriever;
-	
+
 	public int getMaxConnections() {
 		return maxConnections;
 	}
+
+	// public PoolingHttpClientConnectionManager closeIdleConnections() {
+	// 	this.connectionManager.closeIdleConnections(6000);
+	// }
 
 	public void setMaxConnections(int maxConnections) {
 		this.maxConnections = maxConnections;
@@ -58,7 +62,7 @@ public class PoolingHttpClient implements OgpHttpClient {
 	}
 
 	private void init(){
-		
+
 		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.getSocketFactory();
 
 		SSLContext sc = null;
@@ -74,24 +78,24 @@ public class PoolingHttpClient implements OgpHttpClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sc);
 		Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory>create()
 		        .register("http", plainsf)
 		        .register("https", sslsf)
 		        .build();
-		
+
 		connectionManager = new PoolingHttpClientConnectionManager(r);
 		// Increase max total connection
 		connectionManager.setMaxTotal(maxConnections);
-		// Increase default max connection per route 
+		// Increase default max connection per route
 		connectionManager.setDefaultMaxPerRoute(maxConnectionsRt);
 
-		
+
 		/*
-		 * 
-		 * 
-		 * 
+		 *
+		 *
+		 *
 		 * MultiThreadedHttpConnectionManager connectionManager =  new MultiThreadedHttpConnectionManager();
 HttpConnectionManagerParams params = connectionManager.getParams();
 
@@ -185,14 +189,14 @@ import org.apache.http.util.EntityUtils;
 				.setConnectionManager(connectionManager)
                 .setDefaultCredentialsProvider(getCredentialsProvider())
                 .build();
-        
-		
+
+
 		initCalled = true;
 		//client.getParams().setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, "UTF-8");
 		//client.getParams().setParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE, 16384);
 		//client.getParams().setParameter("http.connection-manager.timeout", 10);
 	}
-	
+
 	private CredentialsProvider getCredentialsProvider(){
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
 
@@ -221,21 +225,21 @@ import org.apache.http.util.EntityUtils;
 	        		//logger.info(password);
 	        		//logger.info(domain);
 	        		//logger.info(Integer.toString(port));
-	        		
+
 	        		credsProvider.setCredentials(
 	        				new AuthScope(domain, port),
 	        				new UsernamePasswordCredentials(username, password));
 				} catch (MalformedURLException e) {
 					logger.error(e.getLocalizedMessage());
 				}
-        		
+
 
         	}
         }
-        
+
         return credsProvider;
 	}
-	
+
 	@Override
 	public CloseableHttpClient getCloseableHttpClient() {
 		if (!initCalled){
@@ -243,7 +247,7 @@ import org.apache.http.util.EntityUtils;
 		}
 		return client;
 	}
-	
+
 	  @PreDestroy
 		public void cleanUp() throws Exception {
 			if (initCalled){

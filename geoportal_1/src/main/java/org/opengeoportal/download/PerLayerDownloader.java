@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 
 /**
  * Class to download layers that must be downloaded one at a time.
- * 
+ *
  * The actual method for downloading is injected by Spring
  * @author chris
  *
@@ -29,7 +29,7 @@ public class PerLayerDownloader implements LayerDownloader {
 	private DownloadPackager downloadPackager;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@SuppressWarnings("unchecked") 
+	@SuppressWarnings("unchecked")
 	@Async
 	@Override
 	public void downloadLayers(UUID requestId, MethodLevelDownloadRequest downloadRequest) throws Exception {
@@ -42,12 +42,13 @@ public class PerLayerDownloader implements LayerDownloader {
 				logger.info("Requesting download for: " + currentLayer.getLayerNameNS());
 				currentLayer.setFutureValue(this.perLayerDownloadMethod.download(currentLayer));
 			} catch (Exception e){
-				e.printStackTrace();
-				logger.error("An error occurred downloading this layer: " + currentLayer.getLayerNameNS());
+				logger.error("An error occurred downloading this layer: " + currentLayer.getLayerNameNS() + ": " + e.toString());
+				logger.error(e.toString()); 
+				logger.error("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				currentLayer.setStatus(Status.FAILED);
 				continue;
 			}
-		} 
+		}
 		int successCount = 0;
 		for (LayerRequest currentLayer: layerList){
 			try{
@@ -57,11 +58,11 @@ public class PerLayerDownloader implements LayerDownloader {
 				logger.info("finished download for: " + currentLayer.getLayerNameNS());
 			} catch (Exception e){
 				logger.error("An error occurred downloading this layer: " + currentLayer.getLayerNameNS());
-				currentLayer.setStatus(Status.FAILED);	
+				currentLayer.setStatus(Status.FAILED);
 			}
-		
+
 		}
-		
+
 		if (successCount > 0){
 			Future<Boolean> ready = downloadPackager.packageFiles(requestId); //this is going to try to package files each time a download method is complete.
 			Boolean response = ready.get();
@@ -69,7 +70,7 @@ public class PerLayerDownloader implements LayerDownloader {
 		} else {
 			logger.error("No Files to package.  Download failed.");
 		}
-		
+
 	}
 
 	public PerLayerDownloadMethod getPerLayerDownloadMethod() {

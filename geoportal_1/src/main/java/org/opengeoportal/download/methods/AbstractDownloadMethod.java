@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -33,7 +34,7 @@ public abstract class AbstractDownloadMethod {
 	protected DirectoryRetriever directoryRetriever;
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	
+
 	public HttpRequester getHttpRequester() {
 		return httpRequester;
 	}
@@ -43,7 +44,7 @@ public abstract class AbstractDownloadMethod {
 	}
 
 	public abstract Set<String> getExpectedContentType();
-	
+
 	public Boolean expectedContentTypeMatched(String foundContentType){
 		if (getExpectedContentType().contains(foundContentType)){
 			return true;
@@ -51,17 +52,18 @@ public abstract class AbstractDownloadMethod {
 			return false;
 		}
 	}
-	
+
 	public Boolean hasMultiple(){
 		//default is false;  if a download method might return more than one file, return true (mulitple urls for zip file download, for example)
 		return false;
 	}
-	
+
 	@Async
 	public Future<Set<File>> download(LayerRequest currentLayer) throws Exception {
 		this.currentLayer = currentLayer;
 		currentLayer.setMetadata(this.includesMetadata());
 		String requestString = "";
+		String contentType = "";
 		try {
 			requestString = createDownloadRequest();
 		} catch (Exception e){
@@ -75,34 +77,76 @@ public abstract class AbstractDownloadMethod {
 		List<String> urls = this.getUrls(currentLayer);
 		for (String url: urls){
 			InputStream inputStream = null;
-			
+			//JSONObject json_obj = null;
+
 			try{
-				inputStream = this.httpRequester.sendRequest(url, requestString, getMethod());	
+				inputStream = this.httpRequester.sendRequest(url, requestString, getMethod());
 				int status = httpRequester.getStatus();
+
+				// Handling Esri Open Data response when a download is being compiled
+				if (status == 202){
+
+					int second_count = 0;
+					int interval = 5;
+					int max_seconds = 900;
+
+
+					//while we're still getting 202 and it's been less than 15 minutes
+					while (status == 202 && second_count < max_seconds){
+
+						try {
+							logger.info("STATUS 202: Waiting and trying again.");
+						    TimeUnit.SECONDS.sleep(interval);
+							second_count = second_count + interval;
+
+							// Close the previous request to keep allocated routes down
+							IOUtils.closeQuietly(inputStream);
+							inputStream = this.httpRequester.sendRequest(url, requestString, getMethod());
+							status = httpRequester.getStatus();
+							contentType = httpRequester.getContentType().toLowerCase();
+
+							// Check for server error, which may occur with a 202 status
+							if (contentType == "application/json" && inputStream.toString().contains("error")){
+								logger.debug("REMOTE SERVER ERROR");
+								throw new Exception("Server error. :`(");
+							}
+
+						} catch(InterruptedException ex) {
+						    Thread.currentThread().interrupt();
+							IOUtils.closeQuietly(inputStream);
+							throw new Exception("InterruptedException!");
+						}
+					}
+				}
+
 				if (status != 200){
+					IOUtils.closeQuietly(inputStream);
 					throw new Exception("Request Failed! Server responded with: " + Integer.toString(status));
 				}
-				String contentType = httpRequester.getContentType().toLowerCase();
+
+				contentType = httpRequester.getContentType().toLowerCase();
 				Boolean contentMatch = expectedContentTypeMatched(contentType);
+
 				if (!contentMatch){
 					logger.error("Unexpected content type: " + contentType);
 					//If their is a mismatch with the expected content, but the response is text, we want to at least log the response
 					if (contentType.toLowerCase().contains("text")||contentType.toLowerCase().contains("html")||contentType.toLowerCase().contains("xml")){
 						logger.error("Returned text: " + IOUtils.toString(inputStream));
-					} 
-					
+					}
+
 					throw new Exception("Unexpected content type");
 
 				}
 				//Content-Disposition	attachment;filename="middle_east_dams.xls"
 				String fileName = null;
 
-				String contentDisp = ""; 
-				try{		
+				String contentDisp = "";
+				try{
 					contentDisp = httpRequester.getHeaderValue("Content-Disposition");
 				} catch (Exception e){
 					//ignore
 				}
+
 				if (contentDisp.toLowerCase().contains("filename")){
 					contentDisp = contentDisp.substring(contentDisp.toLowerCase().indexOf("filename="));
 					contentDisp = contentDisp.substring(contentDisp.toLowerCase().indexOf("=") + 1);
@@ -124,12 +168,12 @@ public abstract class AbstractDownloadMethod {
 				}
 			} finally {
 				IOUtils.closeQuietly(inputStream);
-				
+
 			}
 		}
 		return new AsyncResult<Set<File>>(fileSet);
 	}
-	
+
 	protected abstract Boolean includesMetadata();
 
 	protected List<String> urlToUrls(String url){
@@ -137,7 +181,7 @@ public abstract class AbstractDownloadMethod {
 		urls.add(url);
 		return urls;
 	}
-	
+
 	protected String getUrl(LayerRequest layer) throws Exception{
 		return this.getUrls(layer).get(0);
 	}
@@ -147,16 +191,16 @@ public abstract class AbstractDownloadMethod {
 		File downloadDirectory = this.directoryRetriever.getDownloadDirectory();
 		File newDir = File.createTempFile("OGP", "", downloadDirectory);
 		newDir.delete();
-		//Boolean success= 
+		//Boolean success=
 		newDir.mkdir();
 		newDir.setReadable(true);
 		newDir.setWritable(true);
 		return newDir;
 	}
-	
+
 	public abstract String createDownloadRequest() throws Exception;
-	
-	
+
+
 	public String checkUrl(String url) throws MalformedURLException{
 		try{
 			new URL(url);
@@ -164,20 +208,20 @@ public abstract class AbstractDownloadMethod {
 			logger.error("URL is malformed: '" + url + "'");
 			throw new MalformedURLException();
 		}
-	
+
 		return url;
 	}
-	
+
 	public abstract String getMethod();
-	
+
 	public BoundingBox getClipBounds() throws Exception{
-		SolrRecord layerInfo = this.currentLayer.getLayerInfo(); 
+		SolrRecord layerInfo = this.currentLayer.getLayerInfo();
 		BoundingBox nativeBounds = new BoundingBox(layerInfo.getMinX(), layerInfo.getMinY(), layerInfo.getMaxX(), layerInfo.getMaxY());
 		BoundingBox bounds = nativeBounds.getIntersection(this.currentLayer.getRequestedBounds());
 		return bounds;
 	}
-	
-	
+
+
 	public Boolean hasRequiredInfo(LayerRequest layerRequest){
 		try {
 			if (getUrls(layerRequest) != null && !getUrls(layerRequest).isEmpty()){
@@ -185,7 +229,7 @@ public abstract class AbstractDownloadMethod {
 			}
 
 		} catch (Exception e){
-			logger.debug(e.getMessage());	
+			logger.debug(e.getMessage());
 		}
 		logger.debug("Layer does not have required info for DownloadMethod");
 		return false;

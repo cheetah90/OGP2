@@ -24,10 +24,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 
 /**
- * class that provides the logic to determine which concrete class 
+ * class that provides the logic to determine which concrete class
  * should be selected to download a layer.
- * 
- * 
+ *
+ *
  * @author Chris Barnett
  *
  */
@@ -37,47 +37,47 @@ public class DownloadHandlerImpl implements DownloadHandler {
 	@Autowired
 	protected RequestStatusManager requestStatusManager;
 
-	
+
 	@Autowired
 	protected LayerInfoRetriever layerInfoRetriever;
 
 	@Autowired
 	private DirectoryRetriever directoryRetriever;
-	
+
 	@Autowired
 	AugmentedSolrRecordRetriever asrRetriever;
 
 	@Autowired
 	private LayerDownloaderProvider layerDownloaderProvider;
-	
+
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	DownloadRequest downloadRequest;
-	
 
-	
+
+
 	/**
 	 * the main method of the class.  Initializes layers and bounds, calls download actions in appropriate
 	 * order
-	 * 
+	 *
 	 */
 	public UUID requestLayers(DownloadRequest dlRequest) throws Exception{
-		
+
 		UUID requestId = UUID.randomUUID();
 		dlRequest.setRequestId(requestId);
 		this.downloadRequest = dlRequest;
 
 		requestStatusManager.addDownloadRequest(dlRequest);
-		
+
 		this.populateDownloadRequest(dlRequest);
-		
+
 		this.submitDownloadRequest();
 		return requestId;
 	}
 
 	/**
 	 * a method that finds the appropriate concrete LayerDownloader and makes the actual request to download layers.
-	 *  
+	 *
 	 * @param downloadMap a map that relates a string key (that identifies the concrete LayerDownloader Class) to a List of
 	 * LayerRequest objects that can be downloaded using that concrete class.
 	 */
@@ -97,16 +97,16 @@ public class DownloadHandlerImpl implements DownloadHandler {
 			}
 		}
 
-		
+
 	}
-	
-	
+
+
 	private void populateDownloadRequest (DownloadRequest dlRequest) throws Exception {
 		Set<String> layerIdSet = dlRequest.getRequestedLayerIds();
 		List<SolrRecord> layerInfo = layerInfoRetriever.fetchAllowedRecords(layerIdSet);
-		
+
 		for (String layerId: layerIdSet){
-			
+
 			SolrRecord record = null;
 			try{
 				//layerIdSet can contain layerIds for layers the user is not allowed to access
@@ -117,13 +117,14 @@ public class DownloadHandlerImpl implements DownloadHandler {
 				//layerRequest.setStatus(Status.FAILED);
 				//subclass LayerRequest as "AbortedLayerRequest" and add?
 				logger.info("User is not authorized to download: '" + layerId +"'");
-				continue;	
+				logger.info(e.toString());
+				continue;
 			}
 			String requestedFormat = dlRequest.getRequestedFormatForLayerId(record.getLayerId());
 			LayerRequest layerRequest = this.createLayerRequest(record, requestedFormat, dlRequest.getBounds(), dlRequest.getEmail());
-			
+
 			String currentClassKey = null;
-			
+
 			try {
 				currentClassKey = this.layerDownloaderProvider.getClassKey(layerRequest);
 				logger.info("DownloadKey: " + currentClassKey);
@@ -137,10 +138,10 @@ public class DownloadHandlerImpl implements DownloadHandler {
 
 		}
 
-		
+
 	}
 
-	
+
 	private LayerRequest createLayerRequest(SolrRecord solrRecord, String requestedFormat, BoundingBox bounds, String emailAddress){
 		LayerRequest layer = new LayerRequest(solrRecord, requestedFormat);
 		layer.setRequestedBounds(bounds);
@@ -151,9 +152,9 @@ public class DownloadHandlerImpl implements DownloadHandler {
 		}
 		return layer;
 	}
-	
+
 	private void addOwsInfo(LayerRequest layer){
-		
+
 		try {
 			AugmentedSolrRecord asr = asrRetriever.getOgcAugmentedSolrRecord(layer.getLayerInfo());
 			List<OwsInfo> info = asr.getOwsInfo();
@@ -162,12 +163,12 @@ public class DownloadHandlerImpl implements DownloadHandler {
 			}
 		} catch (Exception e) {
 			logger.error("Problem setting info from OWS service for layer: ['" + layer.getId() + "']");
-		}	
+		}
 	}
-	
-	
+
+
 	void collateRequests(List<MethodLevelDownloadRequest> mlRequestList, LayerRequest layerRequest, String classKey){
-		
+
 		//here, we're collecting layers that use the same download method
 		Boolean match = false;
 		for (MethodLevelDownloadRequest mlRequest: mlRequestList){
@@ -176,7 +177,7 @@ public class DownloadHandlerImpl implements DownloadHandler {
 				match = true;
 			}
 		}
-		
+
 		if (!match){
 			LayerDownloader layerDownloader = this.layerDownloaderProvider.getLayerDownloader(classKey);
 			MethodLevelDownloadRequest mlRequest = new MethodLevelDownloadRequest(classKey, layerDownloader);
@@ -184,7 +185,7 @@ public class DownloadHandlerImpl implements DownloadHandler {
 			mlRequestList.add(mlRequest);
 		}
 	}
-	
+
 
 
 
